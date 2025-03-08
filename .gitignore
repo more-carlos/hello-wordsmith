@@ -1,6 +1,12 @@
 .mypy_cache
+**/lib/*
+**/bin/*
+**/share/*
+**/site/*
 build
 env
+bin
 *.egg-info
 __pycache__
 ./storage/**
+.DS_Store
