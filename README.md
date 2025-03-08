@@ -51,3 +51,7 @@ If you prefer using Poetry for environment management:
 ## Explore
 
 As you can see, this repo is an extremely simplistic first step towards building a RAG system on your data. You can open up these files and explore how changing parameters like chunk size, or the embedding model that we use, can influence the performance of the system.
+
+## Development Tools
+
+As I am a little bit rusty with Python, I used this project to test [Cursor](https://cursor.sh/), an AI-powered code editor. Cursor significantly improved the development process by providing intelligent code suggestions, helping with debugging and fixing issues. It was a little messy with some dependencies issues, but in general the experience was quite positive
