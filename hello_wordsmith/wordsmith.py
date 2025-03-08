@@ -6,8 +6,8 @@ from typing import Callable, Union
 from llama_index.cli.rag import RagCLI
 from llama_index.core import Settings
 from llama_index.core.ingestion import IngestionCache, IngestionPipeline
-from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
-from llama_index.llms.openai import OpenAI
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.ollama import Ollama
 
 from .datastores import fetch_or_initialise_datastores
 from .query_pipeline import configure_query_pipeline
@@ -53,15 +53,14 @@ class WordsmithRAGCLI(RagCLI):
 
 def _init_env(func: Callable[[], None]) -> Callable[[], None]:
     def wrapper() -> None:
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            print(
-                "Error: Environment variable 'OPENAI_API_KEY' is not set. Please set this before running."
-            )
-            sys.exit(1)
-        Settings.embed_model = OpenAIEmbedding(
-            model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
+        print("Using HuggingFace embeddings model...")
+        Settings.embed_model = HuggingFaceEmbedding(
+            model_name="BAAI/bge-small-en-v1.5"
         )
+        # Make sure we're not using OpenAI
+        os.environ["OPENAI_API_KEY"] = "NOT_USING_OPENAI"
+        os.environ["USE_HUGGINGFACE"] = "True"
+        
         return func()
 
     return wrapper
@@ -79,7 +78,28 @@ def _set_chunking_settings() -> None:
 def main() -> None:
     _set_chunking_settings()
     datastore_container = fetch_or_initialise_datastores()
-    llm = OpenAI(api_key=os.environ["OPENAI_API_KEY"], model="gpt-4")
+    llm = Ollama(
+        model="llama3.2",
+        base_url="http://localhost:11434",
+        temperature=0.7,
+        request_timeout=60.0
+    )
+    
+    # Create a simple query engine using the index
+    query_engine = datastore_container.index.as_query_engine(
+        llm=llm
+    )
+    
+    # Check if a query argument was passed
+    if "-q" in sys.argv:
+        query_idx = sys.argv.index("-q")
+        if query_idx + 1 < len(sys.argv):
+            query = sys.argv[query_idx + 1]
+            print(f"Query: {query}")
+            response = query_engine.query(query)
+            print(f"\nAnswer: {response}")
+            return
+    
     query_pipeline = configure_query_pipeline(
         index=datastore_container.index,
         llm=llm

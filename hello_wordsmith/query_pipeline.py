@@ -2,7 +2,7 @@ from llama_index.core import ChatPromptTemplate, VectorStoreIndex
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.query_pipeline import InputComponent, QueryPipeline
 from llama_index.core.response_synthesizers import TreeSummarize
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.ollama import Ollama
 
 _system_prompt = ChatMessage(
     content=(
@@ -41,7 +41,7 @@ _chat_template_messages = [
 _TOP_K_RETRIEVAL = 20
 
 
-def configure_query_pipeline(*, index: VectorStoreIndex, llm: OpenAI) -> QueryPipeline:
+def configure_query_pipeline(*, index: VectorStoreIndex, llm: Ollama) -> QueryPipeline:
     """Configure and set up the query pipeline"""
     text_qa_chat_template = ChatPromptTemplate.from_messages(_chat_template_messages)
     query_pipeline = QueryPipeline()
